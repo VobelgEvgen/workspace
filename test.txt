@@ -1,0 +1,45 @@
+[cb]
+exten => s,1,Noop()
+same => n,Background(/var/lib/asterisk/sounds/callback1)
+same => n,WaitExten(5)
+same => n,Hangup()
+
+exten => 1,1,Noop(if the issue is resolved)
+same => n,Set(ODBC_SCORE_RES()=${Q},${CALLERID(num)})
+same => n,Background(/var/lib/asterisk/sounds/callback2)
+same => n,Hangup()
+
+exten => 0,1,Noop(if the issue is not resolved)
+same => n,Set(ODBC_SCORE_UNRES()=${Q},${CALLERID(num)})
+same => n,Background(/var/lib/asterisk/sounds/callback2)
+same => n,Hangup()
+
+[rating_no_cb]
+exten => s,1,Noop()
+same => n,Background(/var/lib/asterisk/sounds/ua3/OneDrive/zapis9)
+same => n,WaitExten(5)
+same => n,Hangup()
+
+exten => 1,1,Noop(${QUEUENAME})
+same => n,Set(ODBC_SCORE_RES_NO_CB()=${QUEUENAME},${CALLERID(num)})
+same => n,Hangup()
+
+exten => 0,1,Noop(if the issue is not resolved)
+same => n,Set(ODBC_SCORE_UNRES_NO_CB()=${QUEUENAME},${CALLERID(num)})
+same => n,Hangup()
+
+[SCORE_RES_NO_CB]
+dsn=asterisk
+writesql=insert score set tiket_resolve=1, queue_id=${VAL1}, user_id=${VAL2}, cid=${VAL3};
+
+[SCORE_UNRES_NO_CB]
+dsn=asterisk
+writesql=insert score set tiket_resolve=0, queue_id=${VAL1}, user_id=${VAL2}, cid=${VAL3};
+
+[SCORE_RES]
+dsn=asterisk
+writesql=update score set tiket_resolve=1  where queue_id=${VAL1} and user_id=${VAL2} and cid=${VAL3} and date > (now() - interval 30 minute);
+
+[SCORE_UNRES]
+dsn=asterisk
+writesql=update score set tiket_resolve=0  where queue_id=${VAL1} and user_id=${VAL2} and cid=${VAL3} and date > (now() - interval 30 minute);
